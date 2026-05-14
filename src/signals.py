@@ -24,21 +24,43 @@ def kalman_filter(px_x, px_y, delta=1e-4, R=1e-2):
         continue
       
     F = np.array([x_t, 1.0])
+    
     theta_pred = theta[t - 1]
     P_pred = P[t - 1] + Q
+    
     y_pred = F @ theta_pred
-    innovation = y_t - y_pred
-    S = F @ P_pred @ F.T + R
-    K = P_pred @ F / S
-
-    # Update step — correct our estimate
-    theta[t] = theta_pred + K * innovation
+    spread = y_t - y_pred
+    S = F @ P_pred @ F.T + R # variance of spread
+    
+    K = P_pred @ F / S # Kalman gain, how much we trust the new observation compared to prior estimate
+    
+    theta[t] = theta_pred + K * innovation 
     P[t] = P_pred - np.outer(K, F) @ P_pred
-
-    spreads[t] = innovation
+    spreads[t] = spread
 
   beta_series = pd.Series(theta[:, 0], index=log_x.index)
   alpha_series = pd.Series(theta[:, 1], index=log_x.index)
   spread_series = pd.Series(spreads, index=log_x.index)
+  return beta_series, alpha_series, spread_series
 
-return beta_series, alpha_series, spread_series
+# Computes rolling z-score of the Kalman spread
+def compute_zscore(spread, window=90):
+  mean = spread.rolling(window=window, min_periods=1).mean()
+  std = spread.rolling(window=window, min_periods=1).std()
+  return (spread - mean) / std
+
+# Stores pairs with associated beta, alpha, spread, and z_score in DataFrame
+def signals(px, pairs, delta=1e-4, R=1e-2, zscore_window=90):
+    signal_df = {}
+
+    for pair in pairs:
+        coin_x, coin_y = pair
+        beta, alpha, spread = kalman_filter(px[coin_x], px[coin_y], delta=delta, R=R)
+        z_score = compute_zscore(spread, window=zscore_window)
+
+        signal_df[(pair, 'beta')] = beta
+        signal_df[(pair, 'alpha')] = alpha
+        signal_df[(pair, 'spread')] = spread
+        signal_df[(pair, 'z_score')] = z_score
+
+    return pd.DataFrame(signal_df)
