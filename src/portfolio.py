@@ -34,6 +34,7 @@ def compute_turnover(pos):
   daily_changes = pos.fillna(0).diff().abs()
   return daily_changes.sum(axis=1)
 
+# Computes net returns of trading activity
 def compute_net_returns(pos, prices, tcost_bps):
   coin_returns = prices.pct_change()
   # Safety check that coins are in both pos and prices
