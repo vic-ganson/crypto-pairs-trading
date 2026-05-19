@@ -34,4 +34,15 @@ def compute_turnover(pos):
   daily_changes = pos.fillna(0).diff().abs()
   return daily_changes.sum(axis=1)
 
-def compute_net_returns(pos, price, tcost_bps):
+def compute_net_returns(pos, prices, tcost_bps):
+  coin_returns = prices.pct_change()
+  # Safety check that coins are in both pos and prices
+  shared_coins = pos.columns.intersection(coin_returns.columns)
+  pos = pos[shared_coins]
+  coin_returns = coin_returns[shared_coins]
+  
+  gross_returns = (pos.shift(1) * coin_returns).sum(axis=1)
+  turnover = computer_turnover(pos)
+  tcost = turnover * tcost_bps * 1e-4
+  net_returns = gross_returns - tcost
+  return net_returns
