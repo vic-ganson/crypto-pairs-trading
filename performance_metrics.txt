@@ -1,0 +1,20 @@
+── Strategy Performance ─────────────────────────────────────────
+Annualized Return         -0.0638
+Annualized Volatility      0.2475
+Sharpe Ratio              -0.2577
+Max Drawdown              -0.3562
+Max Drawdown Duration    647.0000
+Avg Daily Turnover         0.1894
+Holding Period (days)     10.5591
+Avg Daily Tcost            0.0004
+Information Ratio         -0.5430
+
+── Benchmark (Buy & Hold BTC) ───────────────────────────────────
+Annualized Return          0.1547
+Annualized Volatility      0.4585
+Sharpe Ratio               0.3374
+Max Drawdown              -0.6674
+Max Drawdown Duration    682.0000
+Avg Daily Turnover         0.0000
+Holding Period (days)         inf
+Avg Daily Tcost            0.0000
