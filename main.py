@@ -64,9 +64,9 @@ def main():
     pos = gen_portfolio(signal_df, final_pairs, crypto_px, threshold=EXIT_THRESHOLD)
 
     # Trimming to out-of-sample period only
-    pos_oos        = pos.loc[OUT_SAMPLE_START:OUT_SAMPLE_END]
-    crypto_px_oos  = crypto_px.loc[OUT_SAMPLE_START:OUT_SAMPLE_END]
-    signal_df_oos  = signal_df.loc[OUT_SAMPLE_START:OUT_SAMPLE_END]
+    pos_oos        = pos[pos.index >= OUT_SAMPLE_START]
+    crypto_px_oos  = crypto_px[crypto_px.index >= OUT_SAMPLE_START]
+    signal_df_oos  = signal_df[signal_df.index >= OUT_SAMPLE_START]
 
     print(f"      Portfolio shape: {pos_oos.shape}")
 

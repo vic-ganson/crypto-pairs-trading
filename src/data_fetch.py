@@ -1,22 +1,39 @@
-import time
-from datetime import datetime
-
 import os
 import pandas as pd
-from pycoingecko import CoinGeckoAPI
+import yfinance as yf
 
-cg = CoinGeckoAPI()
 CACHE_PATH = "data/crypto_prices.csv"
 
-# Loads prices from cache if possible, otherwise fetches from API.
+COINGECKO_TO_YAHOO = {
+    'bitcoin': 'BTC-USD',
+    'ethereum': 'ETH-USD',
+    'binancecoin': 'BNB-USD',
+    'ripple': 'XRP-USD',
+    'cardano': 'ADA-USD',
+    'solana': 'SOL-USD',
+    'polkadot': 'DOT-USD',
+    'dogecoin': 'DOGE-USD',
+    'avalanche-2': 'AVAX-USD',
+    'chainlink': 'LINK-USD',
+    'litecoin': 'LTC-USD',
+    'uniswap': 'UNI-USD',
+    'cosmos': 'ATOM-USD',
+    'algorand': 'ALGO-USD',
+    'stellar': 'XLM-USD',
+    'filecoin': 'FIL-USD',
+    'tron': 'TRX-USD',
+    'monero': 'XMR-USD',
+    'ethereum-classic': 'ETC-USD',
+    'vechain': 'VET-USD'
+}
+
 def load_prices(coin_ids: list, start: str, end: str, force_refresh=False) -> pd.DataFrame:
-    
-    if os.path.exists(CACHE_PATH) and not force_refresh: # force_refresh = True bypasses the cache
+    if os.path.exists(CACHE_PATH) and not force_refresh:
         print("Loading prices from cache...")
         df = pd.read_csv(CACHE_PATH, index_col=0, parse_dates=True)
         return df
 
-    print("Fetching prices from CoinGecko...")
+    print("Fetching prices from Yahoo Finance...")
     df = fetch_prices(coin_ids, start, end)
 
     os.makedirs("data", exist_ok=True)
@@ -24,32 +41,18 @@ def load_prices(coin_ids: list, start: str, end: str, force_refresh=False) -> pd
     print(f"Saved to {CACHE_PATH}")
     return df
 
-# Gets prices from API
 def fetch_prices(coin_ids: list, start: str, end: str) -> pd.DataFrame:
-    start_ts = int(datetime.strptime(start, "%Y-%m-%d").timestamp())
-    end_ts = int(datetime.strptime(end, "%Y-%m-%d").timestamp())
-    
-    all_prices = {}
+    # Convert CoinGecko IDs to Yahoo tickers
+    tickers = [COINGECKO_TO_YAHOO[c] for c in coin_ids if c in COINGECKO_TO_YAHOO]
+    missing = [c for c in coin_ids if c not in COINGECKO_TO_YAHOO]
+    if missing:
+        print(f"Warning: no Yahoo ticker mapping for: {missing}")
 
-    for coin in coin_ids:
-        try:
-            data = cg.get_coin_market_chart_range_by_id(
-                id=coin,
-                vs_currency="usd",
-                from_timestamp=start_ts,
-                to_timestamp=end_ts
-            )
-            prices = pd.DataFrame(data["prices"], columns=["timestamp", coin])
-            prices["timestamp"] = pd.to_datetime(prices["timestamp"], unit="ms")
-            prices = prices.set_index("timestamp")[coin]
-            all_prices[coin] = prices
+    # Fetch all tickers in one call — much faster than one by one
+    raw_prices = yf.download(tickers, start=start, end=end, auto_adjust=True)['Close']
 
-            time.sleep(1.5)  # respect rate limits
+    # Rename columns back to CoinGecko IDs for consistency with rest of codebase
+    yahoo_to_coingecko = {v: k for k, v in COINGECKO_TO_YAHOO.items()}
+    raw_prices = raw_prices.rename(columns=yahoo_to_coingecko)
 
-        except Exception as e:
-            print(f"Failed to fetch {coin}: {e}")
-            continue
-
-    df = pd.DataFrame(all_prices)
-    df.index = df.index.normalize()  # strip time, keep date only
-    return df
+    return raw_prices

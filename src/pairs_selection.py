@@ -1,6 +1,7 @@
 import numpy as np
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
+from itertools import combinations
 
 def adf_of_pair(coin_x, coin_y, sample_px):
   sample_log_px = np.log(sample_px)
@@ -24,7 +25,7 @@ def find_best_pairs(sample_px, p_threshold = 0.05):
   best_pairs = {}
 
   for coin_x, coin_y in combinations(coins, 2):
-    pair, (p_value, test_stat) = adf_of_pair(coin_x, coin_y, sample_x)
+    pair, (p_value, test_stat) = adf_of_pair(coin_x, coin_y, sample_px)
     for base, partner in [(coin_x, coin_y), (coin_y, coin_x)]:
       if p_value < p_threshold:
         if base not in best_pairs or test_stat < best_pairs[base][1]:

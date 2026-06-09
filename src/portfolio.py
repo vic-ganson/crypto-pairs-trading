@@ -43,7 +43,7 @@ def compute_net_returns(pos, prices, tcost_bps):
   coin_returns = coin_returns[shared_coins]
   
   gross_returns = (pos.shift(1) * coin_returns).sum(axis=1)
-  turnover = computer_turnover(pos)
+  turnover = compute_turnover(pos)
   tcost = turnover * tcost_bps * 1e-4
   net_returns = gross_returns - tcost
-  return net_returns
+  return gross_returns, net_returns, turnover

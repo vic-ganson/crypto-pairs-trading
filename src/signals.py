@@ -34,7 +34,7 @@ def kalman_filter(px_x, px_y, delta=1e-4, R=1e-2):
     
     K = P_pred @ F / S # Kalman gain, how much we trust the new observation compared to prior estimate
     
-    theta[t] = theta_pred + K * innovation 
+    theta[t] = theta_pred + K * spread
     P[t] = P_pred - np.outer(K, F) @ P_pred
     spreads[t] = spread
 

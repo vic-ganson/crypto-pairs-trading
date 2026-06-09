@@ -49,16 +49,16 @@ def compute_information_ratio(strategy_returns, benchmark_returns, window=252):
         'strategy': strategy_returns,
         'benchmark': benchmark_returns
     }).dropna()
-    # Rolling correlation and volatility
-    corr = combined.rolling(window).corr()['benchmark']['strategy']
-    vol = combined.rolling(window).std()
-    # Rolling beta
-    beta = (corr * vol['strategy']) / vol['benchmark']
-    # Residual returns
-    alpha = combined['strategy'] - beta * combined['benchmark']
 
-    ir = alpha.mean() / alpha.std() * np.sqrt(252)
-    return ir, alpha
+    # Fix: unstack the MultiIndex before indexing
+    rolling_corr = combined.rolling(window).corr().unstack()['strategy']['benchmark']
+    rolling_vol = combined.rolling(window).std()
+
+    beta = (rolling_corr * rolling_vol['strategy']) / rolling_vol['benchmark']
+    residuals = combined['strategy'] - beta * combined['benchmark']
+
+    ir = residuals.mean() / residuals.std() * np.sqrt(252)
+    return ir, residuals
 
 # Average number of days a pos. is held
 def compute_holding_period(turnover):
