@@ -19,7 +19,7 @@ def adf_of_pair(coin_x, coin_y, sample_px):
 
   return (coin_x, coin_y), (p_value, test_stat)
 
-def best_pairs(sample_px, p_threshold = 0.05):
+def find_best_pairs(sample_px, p_threshold = 0.05):
   coins = sample_px.columns.tolist()
   best_pairs = {}
 

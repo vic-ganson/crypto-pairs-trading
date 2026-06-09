@@ -50,7 +50,7 @@ def compute_zscore(spread, window=90):
   return (spread - mean) / std
 
 # Stores pairs with associated beta, alpha, spread, and z_score in DataFrame
-def signals(px, pairs, delta=1e-4, R=1e-2, zscore_window=90):
+def gen_signals(px, pairs, delta=1e-4, R=1e-2, zscore_window=90):
     signal_df = {}
 
     for pair in pairs:
